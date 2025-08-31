@@ -24,3 +24,5 @@ The extension is now active!
 
 ### ✨ Features
  * ⚡ Instant redirect to Pipeline Explorer
+
+100% vibe coded :D
