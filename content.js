@@ -138,31 +138,166 @@ function showPopupForm(originalHref) {
     // Create popup content
     const popupContent = document.createElement('div');
     popupContent.style.cssText = `
-    background-color: white;
-    padding: 20px;
-    border-radius: 5px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    width: 400px;
-    max-width: 90%;
+    background: #ffffff;
+    padding: 0;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    width: 420px;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
   `;
 
-    // Create the form
+    // Create the form with modern styling
     popupContent.innerHTML = `
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
-      <div style="font-weight: bold; font-size: 18px;">Deploy to QA</div>
-      <button id="jenkins-popup-close" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">&times;</button>
+    <div style="
+      background: #ffffff;
+      padding: 24px 24px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    ">
+      <div>
+        <div style="
+          font-weight: 600;
+          font-size: 18px;
+          color: #1a1a1a;
+          margin-bottom: 4px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        ">
+          <span style="
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+          ">🚀</span>
+          Deploy to QA
+        </div>
+      </div>
+      <button id="jenkins-popup-close" style="
+        background: none;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        font-size: 18px;
+        cursor: pointer;
+        color: #999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        margin: -8px -8px 0 0;
+      ">&times;</button>
     </div>
-    <div>
-      <p>Are you sure you want to proceed with deployment to QA?</p>
-      <div style="margin-top: 20px; display: flex; gap: 10px;">
-        <button id="proceed-btn" class="jenkins-button jenkins-submit-button jenkins-button--primary">
-          Proceed
-        </button>
-        <button id="abort-btn" class="jenkins-button jenkins-submit-button jenkins-button--primary">
+    
+    <div style="padding: 24px;">
+      
+      <div style="
+        background: linear-gradient(to right, #f7f9fc, #ffffff);
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 24px;
+      ">
+        <div style="
+          display: grid;
+          grid-template-columns: auto 1fr;
+          gap: 8px 12px;
+          font-size: 13px;
+          color: #4a5568;
+        ">
+          <span style="font-weight: 500;">Status:</span>
+          <span style="color: #38a169;">Ready for deployment</span>
+          
+          <span style="font-weight: 500;">Environment:</span>
+          <span>QA</span>
+          
+          <span style="font-weight: 500;">Build:</span>
+          <span>#${window.location.pathname.split('/').pop() || 'latest'}</span>
+        </div>
+      </div>
+      
+      <div style="display: flex; gap: 12px; justify-content: flex-end;">
+        <button id="abort-btn" style="
+          padding: 10px 20px;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          background: #ffffff;
+          color: #4a5568;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          min-width: 80px;
+          font-size: 14px;
+        ">
           Abort
+        </button>
+        
+        <button id="proceed-btn" style="
+          padding: 10px 20px;
+          border: none;
+          border-radius: 8px;
+          background: linear-gradient(135deg, #0063a6, #007acc);
+          color: white;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          min-width: 80px;
+          box-shadow: 0 2px 4px rgba(74, 144, 226, 0.3);
+          font-size: 14px;
+        ">
+          Deploy
         </button>
       </div>
     </div>
+    
+    <style>
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      @keyframes slideUp {
+        from { 
+          opacity: 0;
+          transform: translateY(20px) scale(0.95);
+        }
+        to { 
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+      
+      #abort-btn:hover {
+        background: #f7fafc;
+        border-color: #cbd5e0;
+        transform: translateY(-1px);
+      }
+      
+      #proceed-btn:hover {
+        background: linear-gradient(135deg, #357abd, #2c5aa0);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(74, 144, 226, 0.4);
+      }
+      
+      #jenkins-popup-close:hover {
+        background: #f7fafc;
+        color: #4a5568;
+      }
+      
+      #jenkins-popup-close:active {
+        transform: scale(0.95);
+      }
+    </style>
   `;
 
     // Add to page
@@ -264,10 +399,10 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
         handlePipelineRedirect();
         // Add a small delay to ensure all shadow DOM elements are loaded
-        setTimeout(transformJenkinsLink, 1000);
+        setTimeout(transformJenkinsLink, 500);
     });
 } else {
     handlePipelineRedirect();
     // Add a small delay to ensure all shadow DOM elements are loaded
-    setTimeout(transformJenkinsLink, 1000);
+    setTimeout(transformJenkinsLink, 500);
 }
