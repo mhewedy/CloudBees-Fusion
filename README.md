@@ -3,16 +3,15 @@ A browser extension that automatically redirects Jenkins job URLs to the Pipelin
 
 ### ⚡Why Use This?
 Saves time by automatically redirecting from:
-
 ```
 https://<domain>/job/<project>/job/<branch>/
 ```
-
 to:
 
 ```
 https://<domain>/job/<project>/job/<branch>/lastBuild/cloudbees-pipeline-explorer/
 ```
+Also, shows an in-place popup with the Pipeline Explorer view to "Proceed" or "Abort" the Pipeline.
 
 ### 🚀 Installation
 * Download this repository
