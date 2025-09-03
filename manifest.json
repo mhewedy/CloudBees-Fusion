@@ -1,29 +1,26 @@
 {
   "manifest_version": 3,
-  "name": "Jenkins Pipeline Explorer Redirect",
+  "name": "Jenkins Enhanced Tools",
   "version": "1.0",
-  "description": "Automatically redirect Jenkins job pages to their Pipeline Explorer view",
-  "permissions": ["webNavigation", "storage"],
-  "background": {
-    "service_worker": "background.js"
-  },
+  "description": "Transforms Jenkins links into popup forms and redirects to Pipeline Explorer",
+  "permissions": ["activeTab", "scripting", "webNavigation", "storage"],
   "action": {
     "default_popup": "popup.html",
-    "default_icon": {
-      "16": "images/icon16.png",
-      "48": "images/icon48.png",
-      "128": "images/icon128.png"
-    }
+    "default_title": "Jenkins Enhanced Tools"
   },
-  "icons": {
-    "16": "images/icon16.png",
-    "48": "images/icon48.png",
-    "128": "images/icon128.png"
+  "background": {
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
       "matches": ["https://*/*"],
-      "js": ["content.js"]
+      "js": ["content.js"],
+      "run_at": "document_end"
     }
-  ]
+  ],
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  }
 }
