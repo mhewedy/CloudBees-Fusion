@@ -2,8 +2,7 @@
 A browser extension that automatically redirects Jenkins job URLs to the Pipeline Explorer view with one click.
 
 ### ⚡Why Use This?
-Save few clicks ....
-Rediret to latest deployment page & show popup to approve the stage
+Global UX enhacements (see features below) 
 
 ### 🚀 Installation
 * Download this repository
@@ -13,7 +12,8 @@ Rediret to latest deployment page & show popup to approve the stage
 
 The extension is now active!
 
-### ✨ Features
+### ✨ Features 
  * ⚡ Instant redirect to Pipeline Explorer
+ * Allow in-place approve for the QA builds
 
 100% vibe coded :D
