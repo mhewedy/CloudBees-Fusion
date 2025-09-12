@@ -16,4 +16,3 @@ The extension is now active!
  * ⚡ Instant redirect to Pipeline Explorer
  * Allow in-place approve for the QA builds
 
-100% vibe coded :D
