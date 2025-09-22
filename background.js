@@ -22,7 +22,7 @@ chrome.webNavigation.onBeforeNavigate.addListener((details) => {
 
 // Listen for installation
 chrome.runtime.onInstalled.addListener(() => {
-    console.log("Jenkins Enhanced Tools installed");
+    console.log("CloudBees Fusion installed");
 
     // Set default values
     chrome.storage.sync.set({

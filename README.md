@@ -1,27 +1,17 @@
-## Jenkins Pipeline Explorer Redirect
-A browser extension that automatically redirects Jenkins job URLs to the Pipeline Explorer view with one click.
+## CloudBees Fusion
+A browser extension that extends CloudBees functionality with enhanced views and seamless navigation.
 
-### ⚡Why Use This?
-Saves time by automatically redirecting from:
-```
-https://<domain>/job/<project>/job/<branch>/
-```
-to:
-
-```
-https://<domain>/job/<project>/job/<branch>/lastBuild/cloudbees-pipeline-explorer/
-```
-Also, shows an in-place popup with the Pipeline Explorer view to "Proceed" or "Abort" the Pipeline.
+### ✨ Features
+* ⚡ Instant redirect to Pipeline Explorer.
+* In-place Approve the stages (via Popup), instead of redirects to a new page.
+* In-place Restart stage (via Popup), where it allows restarting the latest stage automatically. (TODO)
 
 ### 🚀 Installation
+You can install the extension from the Chrome Web Store or manually.
+
 * Download this repository
 * Open Edge/Chrome and go to edge://extensions/ or chrome://extensions/
 * Enable "Developer mode" (toggle in top right)
 * Click "Load unpacked" and select the extension folder
 
 The extension is now active!
-
-### ✨ Features
- * ⚡ Instant redirect to Pipeline Explorer
-
-100% vibe coded :D

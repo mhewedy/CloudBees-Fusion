@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Jenkins Enhanced Tools",
+  "name": "CloudBees Fusion",
   "version": "1.0",
-  "description": "Transforms Jenkins links into popup forms and redirects to Pipeline Explorer",
+  "description": "Extends CloudBees functionality with enhanced views and seamless navigation",
   "permissions": ["activeTab", "scripting", "webNavigation", "storage"],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Jenkins Enhanced Tools"
+    "default_title": "CloudBees Fusion"
   },
   "background": {
     "service_worker": "background.js"
