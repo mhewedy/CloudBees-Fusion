@@ -179,7 +179,7 @@ function showPopupForm(originalHref) {
             color: white;
             font-size: 14px;
           ">🚀</span>
-          Deploy to QA
+          Deploy
         </div>
       </div>
       <button id="jenkins-popup-close" style="
@@ -218,9 +218,6 @@ function showPopupForm(originalHref) {
           <span style="font-weight: 500;">Status:</span>
           <span style="color: #38a169;">Ready for deployment</span>
           
-          <span style="font-weight: 500;">Environment:</span>
-          <span>QA</span>
-          
           <span style="font-weight: 500;">Build:</span>
           <span>#${window.location.pathname.split('/').pop() || 'latest'}</span>
         </div>
@@ -246,7 +243,7 @@ function showPopupForm(originalHref) {
           padding: 10px 20px;
           border: none;
           border-radius: 8px;
-          background: linear-gradient(135deg, #0063a6, #007acc);
+          background: #d10374;
           color: white;
           font-weight: 500;
           cursor: pointer;
@@ -304,13 +301,20 @@ function showPopupForm(originalHref) {
     popupOverlay.appendChild(popupContent);
     document.body.appendChild(popupOverlay);
 
+    document.addEventListener('keydown', function escHandler(e) {
+        if (e.key === "Escape") {
+            popupOverlay.remove();
+            document.removeEventListener('keydown', escHandler);
+        }
+    });
+
     // Build the correct action URL
     const url = new URL(originalHref);
     let path = url.pathname;
     if (path.includes('../')) {
         path = path.replace('../', '');
     }
-    const actionUrl = `${url.origin}${path}/Deploy-QA/submit`;
+    const actionUrl = `${url.origin}${path}/Deploy-QA/submit`;      // TODO read stage (Deploy-QA) dynamically
 
     // Add event listeners to buttons
     document.getElementById('proceed-btn').addEventListener('click', function() {
@@ -702,86 +706,156 @@ function checkIsLatestBuild() {
                 const linkElem = item.querySelector('.app-builds-container__item__inner__link');
                 const numberMatch = linkElem?.textContent?.match(/#(\d+)/);
                 const number = numberMatch ? numberMatch[1] : null;
+                const statusIcon = item.querySelector('.app-builds-container__item__icon');
+                let status = null;
 
-                builds.push(number);
+                if (statusIcon) {
+                    const tooltip = statusIcon.getAttribute('tooltip');
+                    if (tooltip) status = tooltip;
+                }
+                builds.push({number, status});
             });
 
-            const currentBuild = (document.querySelector('title').text.match(/#(\d+)/) || [])[1] || null
-
-            if (builds && builds.length > 0 && Number(builds[0]) !== Number(currentBuild)) {
-                console.log('current build is not the latest', builds[0], currentBuild)
-
-                const overlay = document.createElement('div');
-                overlay.style.position = 'fixed';
-                overlay.style.top = '0';
-                overlay.style.left = '0';
-                overlay.style.width = '100%';
-                overlay.style.height = '100%';
-                overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
-                overlay.style.display = 'flex';
-                overlay.style.justifyContent = 'center';
-                overlay.style.alignItems = 'center';
-                overlay.style.zIndex = 9999;
-
-                const modal = document.createElement('div');
-                modal.style.backgroundColor = '#fff';
-                modal.style.padding = '20px 25px';
-                modal.style.borderRadius = '8px';
-                modal.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
-                modal.style.textAlign = 'center';
-                modal.style.maxWidth = '460px';
-                modal.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-                modal.style.fontSize = '16px';
-                modal.style.display = 'flex';
-                modal.style.flexDirection = 'column';
-                modal.style.alignItems = 'center';
-                modal.style.gap = '15px';
-
-                const message = document.createElement('div');
-                message.style.display = 'flex';
-                message.style.alignItems = 'center';
-                message.style.gap = '10px';
-                message.style.fontSize = '16px';
-
-                const icon = document.createElement('span');
-                icon.textContent = '⚠️'; // warning icon
-                icon.style.fontSize = '20px';
-
-                const text = document.createElement('span');
-                let buildNumbers = Number(builds[0]) - Number(currentBuild);
-                text.textContent = buildNumbers === 1 ?
-                    `There is a new build has been queued ...` :
-                    `There are ${buildNumbers} new builds have been queued ...`;
-
-                message.appendChild(icon);
-                message.appendChild(text);
-
-                const okBtn = document.createElement('button');
-                okBtn.textContent = "OK";
-                okBtn.style.padding = '8px 16px';
-                okBtn.style.border = 'none';
-                okBtn.style.borderRadius = '4px';
-                okBtn.style.backgroundColor = '#1976d2'; // blue button
-                okBtn.style.color = '#fff';
-                okBtn.style.fontWeight = 'bold';
-                okBtn.style.cursor = 'pointer';
-                okBtn.style.fontSize = '14px';
-
-                okBtn.addEventListener('click', () => overlay.remove());
-
-                document.addEventListener('keydown', function escHandler(e) {
-                    if (e.key === "Escape") {
-                        overlay.remove();
-                        document.removeEventListener('keydown', escHandler);
-                    }
-                });
-
-                modal.appendChild(message);
-                modal.appendChild(okBtn);
-                overlay.appendChild(modal);
-                document.body.appendChild(overlay);
-
+            if (!builds || builds.length === 0 ) {
+                console.log('no builds found', builds)
+                return;
             }
+
+            const currentBuildNumber = (document.querySelector('title').text.match(/#(\d+)/) || [])[1] || null
+            const currentBuildStatus = builds.find(build => build.number === currentBuildNumber).status;
+
+            if (currentBuildStatus !== 'In progress') {
+                console.log('current build is not in progress', currentBuildStatus)
+                return;
+            }
+
+            if (Number(builds[0].number) === Number(currentBuildNumber)) {
+                console.log('current build is the latest', builds[0].number, currentBuildNumber)
+                return;
+            }
+
+            console.log('current build is not the latest', builds[0].number, currentBuildNumber)
+
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.id = 'build-popup-overlay';
+            overlay.style.cssText = `
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+`;
+
+            let buildNumbers = Number(builds[0].number) - Number(currentBuildNumber);
+
+            overlay.innerHTML = `
+  <div style="
+    background: #ffffff;
+    border-radius: 12px;
+    width: 420px;
+    max-width: 90vw;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    animation: slideUp 0.3s ease;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05);
+  ">
+    <div style="
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 1px solid #f0f0f0;
+    ">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <span style="display:inline-block; width:24px; height:24px;">
+          <svg viewBox="0 0 24 24" fill="#d10374" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 21h22L12 2 1 21z"/>
+            <path d="M12 16v2" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            <path d="M12 10v4" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span style="font-weight: 600; font-size: 16px;">Build Alert</span>
+      </div>
+      <button id="build-popup-close" style="
+        background: none;
+        border: none;
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        font-size: 18px;
+        cursor: pointer;
+        color: #999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+      ">&times;</button>
+    </div>
+
+    <div style="padding: 20px 24px; font-size: 15px; color: #1a1a1a;">
+      This is <b>not</b> the latest build.<br/>
+      ${buildNumbers === 1 ?
+                `A new build has been queued ...` :
+                `There are ${buildNumbers} new builds queued ...`
+            }
+    </div>
+
+    <div style="padding: 0 24px 20px; display:flex; justify-content:flex-end;">
+      <button id="build-popup-ok" style="
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        background: #d10374;
+        color: #fff;
+        font-weight: bold;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      ">OK</button>
+    </div>
+
+    <style>
+      @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+
+      #build-popup-ok:hover {
+        background: linear-gradient(135deg, #357abd, #2c5aa0);
+        transform: translateY(-1px);
+      }
+
+      #build-popup-close:hover {
+        background: #f7fafc;
+        color: #4a5568;
+      }
+
+      #build-popup-close:active {
+        transform: scale(0.95);
+      }
+    </style>
+  </div>
+`;
+
+            document.body.appendChild(overlay);
+
+            document.getElementById('build-popup-ok').addEventListener('click', () => overlay.remove());
+            document.getElementById('build-popup-close').addEventListener('click', () => overlay.remove());
+
+            document.addEventListener('keydown', function escHandler(e) {
+                if (e.key === "Escape") {
+                    overlay.remove();
+                    document.removeEventListener('keydown', escHandler);
+                }
+            });
 
         })
         .catch(err => console.error('Error fetching builds:', err));
