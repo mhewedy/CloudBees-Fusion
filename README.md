@@ -7,7 +7,7 @@ A browser extension that extends CloudBees functionality with enhanced views and
 * In-place Restart stage (via Popup), where it allows restarting the latest stage automatically.
 
 ### 🚀 Installation
-You can install the extension from the Chrome Web Store or manually.
+You can install the extension from the [Chrome Web Store (works for any Chromuium ased browser, such as edge and brave)](https://chromewebstore.google.com/detail/cloudbees-fusion/lcnipldkcebcjjnecaojmdjcholpcloc) or manually (see blow).
 
 * Download this repository
 * Open Edge/Chrome and go to edge://extensions/ or chrome://extensions/
