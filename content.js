@@ -678,7 +678,7 @@ function checkIsLatestBuild() {
         return;
     }
 
-    const baseURL = (window.location.href.split('/cloudbees-pipeline-explorer/')[0]).split('lastBuild')[0];
+    const baseURL = window.location.href.replace(/\/(\d+|lastBuild)\/cloudbees-pipeline-explorer\/.*/, '/');
     const url = `${baseURL}/buildHistory/ajax?search=`;
 
     fetch(url, {
@@ -708,8 +708,8 @@ function checkIsLatestBuild() {
 
             const currentBuild = (document.querySelector('title').text.match(/#(\d+)/) || [])[1] || null
 
-            if (Number(builds[0]) !== Number(currentBuild)) {
-                console.log('current build is not the latest')
+            if (builds && builds.length > 0 && Number(builds[0]) !== Number(currentBuild)) {
+                console.log('current build is not the latest', builds[0], currentBuild)
 
                 const overlay = document.createElement('div');
                 overlay.style.position = 'fixed';
