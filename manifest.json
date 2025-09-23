@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "CloudBees Fusion",
-  "version": "1.0",
+  "version": "1.1",
   "description": "Extends CloudBees functionality with enhanced views and seamless navigation",
   "permissions": ["activeTab", "scripting", "webNavigation", "storage"],
   "action": {
