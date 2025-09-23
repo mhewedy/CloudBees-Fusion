@@ -672,6 +672,121 @@ function showRestartPopup() {
     document.addEventListener('keydown', handleEscape);
 }
 
+function checkIsLatestBuild() {
+    // Check if we're on the pipeline explorer page
+    if (!window.location.href.includes('/cloudbees-pipeline-explorer/')) {
+        return;
+    }
+
+    const baseURL = (window.location.href.split('/cloudbees-pipeline-explorer/')[0]).split('lastBuild')[0];
+    const url = `${baseURL}/buildHistory/ajax?search=`;
+
+    fetch(url, {
+        method: 'GET',
+        credentials: 'include', // include cookies if needed
+        headers: {
+            'Accept': 'text/html',
+        },
+    })
+        .then(response => response.text())
+        .then(htmlString => {
+            // Parse the HTML string
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlString, 'text/html');
+
+            const builds = []
+            const items = doc.querySelectorAll('.app-builds-container__item');
+
+            items.forEach(item => {
+                const id = item.getAttribute('page-entry-id');
+                const linkElem = item.querySelector('.app-builds-container__item__inner__link');
+                const numberMatch = linkElem?.textContent?.match(/#(\d+)/);
+                const number = numberMatch ? numberMatch[1] : null;
+
+                builds.push(number);
+            });
+
+            const currentBuild = (document.querySelector('title').text.match(/#(\d+)/) || [])[1] || null
+
+            if (Number(builds[0]) !== Number(currentBuild)) {
+                console.log('current build is not the latest')
+
+                const overlay = document.createElement('div');
+                overlay.style.position = 'fixed';
+                overlay.style.top = '0';
+                overlay.style.left = '0';
+                overlay.style.width = '100%';
+                overlay.style.height = '100%';
+                overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                overlay.style.display = 'flex';
+                overlay.style.justifyContent = 'center';
+                overlay.style.alignItems = 'center';
+                overlay.style.zIndex = 9999;
+
+                const modal = document.createElement('div');
+                modal.style.backgroundColor = '#fff';
+                modal.style.padding = '20px 25px';
+                modal.style.borderRadius = '8px';
+                modal.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+                modal.style.textAlign = 'center';
+                modal.style.maxWidth = '460px';
+                modal.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+                modal.style.fontSize = '16px';
+                modal.style.display = 'flex';
+                modal.style.flexDirection = 'column';
+                modal.style.alignItems = 'center';
+                modal.style.gap = '15px';
+
+                const message = document.createElement('div');
+                message.style.display = 'flex';
+                message.style.alignItems = 'center';
+                message.style.gap = '10px';
+                message.style.fontSize = '16px';
+
+                const icon = document.createElement('span');
+                icon.textContent = '⚠️'; // warning icon
+                icon.style.fontSize = '20px';
+
+                const text = document.createElement('span');
+                let buildNumbers = Number(builds[0]) - Number(currentBuild);
+                text.textContent = buildNumbers === 1 ?
+                    `There is a new build has been queued ...` :
+                    `There are ${buildNumbers} new builds have been queued ...`;
+
+                message.appendChild(icon);
+                message.appendChild(text);
+
+                const okBtn = document.createElement('button');
+                okBtn.textContent = "OK";
+                okBtn.style.padding = '8px 16px';
+                okBtn.style.border = 'none';
+                okBtn.style.borderRadius = '4px';
+                okBtn.style.backgroundColor = '#1976d2'; // blue button
+                okBtn.style.color = '#fff';
+                okBtn.style.fontWeight = 'bold';
+                okBtn.style.cursor = 'pointer';
+                okBtn.style.fontSize = '14px';
+
+                okBtn.addEventListener('click', () => overlay.remove());
+
+                document.addEventListener('keydown', function escHandler(e) {
+                    if (e.key === "Escape") {
+                        overlay.remove();
+                        document.removeEventListener('keydown', escHandler);
+                    }
+                });
+
+                modal.appendChild(message);
+                modal.appendChild(okBtn);
+                overlay.appendChild(modal);
+                document.body.appendChild(overlay);
+
+            }
+
+        })
+        .catch(err => console.error('Error fetching builds:', err));
+}
+
 // Initialize when page is loaded
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
@@ -679,10 +794,12 @@ if (document.readyState === 'loading') {
         // Add a small delay to ensure all shadow DOM elements are loaded
         setTimeout(transformJenkinsLink, 500);
         setTimeout(addRestartPopup, 1000);
+        setTimeout(checkIsLatestBuild, 1000);
     });
 } else {
     handlePipelineRedirect();
     // Add a small delay to ensure all shadow DOM elements are loaded
     setTimeout(transformJenkinsLink, 500);
     setTimeout(addRestartPopup, 1000);
+    setTimeout(checkIsLatestBuild, 1000);
 }

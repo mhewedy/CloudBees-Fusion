@@ -5,6 +5,7 @@ A browser extension that extends CloudBees functionality with enhanced views and
 * ⚡ Instant redirect to Pipeline Explorer.
 * In-place Approve the stages (via Popup), instead of redirects to a new page.
 * In-place Restart stage (via Popup), where it allows restarting the latest stage automatically.
+* In the Pipeline Explorer notify the user if new builds have been queued.
 
 ### 🚀 Installation
 You can install the extension from the Chrome Web Store or manually.
