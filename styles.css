@@ -30,3 +30,31 @@
 .jenkins-button--primary:hover {
     background-color: #164bb8;
 }
+
+/* Restart Popup Styles */
+#restart-popup-overlay {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+#restart-popup-overlay #main-panel {
+    background: white !important;
+}
+
+#restart-popup-overlay table {
+    background: white !important;
+}
+
+#close-restart-popup:hover {
+    background: #f0f0f0 !important;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}

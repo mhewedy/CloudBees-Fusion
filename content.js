@@ -73,9 +73,9 @@ function transformJenkinsLink() {
         if (linkTransformEnabled) {
             // Find the target link - search in both light DOM and shadow DOM
             const link = document.querySelector("#cloudbees-log-viewer")
-                .shadowRoot.querySelector("#wrapper > div > section > cloudbees-log-viewer-log-bar")
-                .shadowRoot.querySelector("#input-step-alert > md-outlined-button")
-                .shadowRoot.querySelector("#link")
+                ?.shadowRoot?.querySelector("#wrapper > div > section > cloudbees-log-viewer-log-bar")
+                ?.shadowRoot?.querySelector("#input-step-alert > md-outlined-button")
+                ?.shadowRoot?.querySelector("#link")
 
             if (!link) {
                 console.log('Target link not found');
@@ -394,15 +394,295 @@ function showPopupForm(originalHref) {
     }
 }
 
+// Function to add restart popup to the "Restart from Stage" button
+function addRestartPopup() {
+    // Check if we're on the pipeline explorer page
+    if (!window.location.href.includes('/cloudbees-pipeline-explorer/')) {
+        return;
+    }
+
+    // Look for all anchor tags that contain #<number> text and have the chevron button
+    const anchorTags = document.querySelectorAll('a.model-link');
+
+    let chevronButton = null;
+
+    anchorTags.forEach(anchor => {
+        // Check if the anchor text matches # followed by numbers (like #1230)
+        if (anchor.textContent.match(/#\d+/)) {
+            // Find the chevron button inside this anchor
+            const chevron = anchor.querySelector('button.jenkins-menu-dropdown-chevron[data-href]');
+            if (chevron) {
+                chevronButton = chevron;
+            }
+        }
+    });
+
+    if (!chevronButton) {
+        console.log('Chevron button not found');
+        return;
+    }
+
+    console.log('Chevron button found, adding restart popup functionality');
+
+    // Add click event listener to the chevron button
+    chevronButton.addEventListener('click', function(e) {
+        // Let the original click behavior happen first (open the dropdown menu)
+        setTimeout(() => {
+            console.log('Chevron button clicked, adding restart popup functionality');
+
+            // Look for the "Restart from Stage" button
+            const restartButtons = document.querySelectorAll('button, a');
+            let restartButton = null;
+
+            restartButtons.forEach(btn => {
+                if (btn.textContent.trim() === 'Restart from Stage') {
+                    restartButton = btn;
+                }
+            });
+
+            if (!restartButton) {
+                console.log('Restart from Stage button not found');
+                return;
+            }
+
+            // Replace the button functionality
+            restartButton.onclick = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                showRestartPopup();
+            };
+
+            // Remove href if it's an anchor tag
+            if (restartButton.tagName === 'A') {
+                restartButton.href = 'javascript:void(0);';
+            }
+
+            console.log('Restart popup functionality added');
+        }, 50);
+    });
+}
+
+// Function to show the restart popup
+function showRestartPopup() {
+    const baseURL = window.location.href.split('/cloudbees-pipeline-explorer/')[0];
+    const restartURL = `${baseURL}/restart/`;
+
+    // Create popup overlay
+    const popupOverlay = document.createElement('div');
+    popupOverlay.id = 'restart-popup-overlay';
+    popupOverlay.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 10000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        backdrop-filter: blur(2px);
+    `;
+
+    // Create popup content
+    const popupContent = document.createElement('div');
+    popupContent.style.cssText = `
+         background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        width: 50%;
+        height: 40%;
+        max-width: 800px;
+        max-height: 500px;
+        min-width: 600px;
+        min-height: 400px;
+        overflow: hidden;
+        animation: slideUp 0.3s ease;
+        display: flex;
+        flex-direction: column;
+    `;
+
+    // Create header
+    const header = document.createElement('div');
+    header.style.cssText = `
+        padding: 20px 24px;
+        border-bottom: 1px solid #e8e8e8;
+        background: #fafafa;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    `;
+    header.innerHTML = `
+        <h2 style="margin: 0; color: #333; font-size: 20px; display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 24px;">🔄</span>
+            Restart Pipeline
+        </h2>
+        <button id="close-restart-popup" style="
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        ">&times;</button>
+    `;
+
+    // Create content area
+    const contentArea = document.createElement('div');
+    contentArea.style.cssText = `
+        flex: 1;
+        padding: 0;
+    `;
+
+    // Create loading indicator
+    contentArea.innerHTML = `
+        <div style="display: flex; justify-content: center; align-items: center; height: 200px;">
+            <div style="text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 10px;">⏳</div>
+                <div>Loading restart page...</div>
+            </div>
+        </div>
+    `;
+
+    // Assemble popup
+    popupContent.appendChild(header);
+    popupContent.appendChild(contentArea);
+    popupOverlay.appendChild(popupContent);
+    document.body.appendChild(popupOverlay);
+
+    // Load the restart page content
+    fetch(restartURL)
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const mainPanel = doc.getElementById('main-panel');
+
+            if (mainPanel) {
+                contentArea.innerHTML = '';
+
+                // Clone and style the main-panel content
+                const clonedContent = mainPanel.cloneNode(true);
+
+                // Style the content to fit better in popup
+                clonedContent.style.padding = '20px';
+                clonedContent.style.maxHeight = 'none';
+
+                contentArea.appendChild(clonedContent);
+
+                // Add custom styles for the popup content
+                const style = document.createElement('style');
+                style.textContent = `
+                    #restart-popup-overlay #main-panel {
+                        max-width: 100% !important;
+                        margin: 0 !important;
+                        padding: 20px !important;
+                    }
+                    #restart-popup-overlay table {
+                        width: 100% !important;
+                    }
+                    #restart-popup-overlay .form-container {
+                        max-width: 100% !important;
+                    }
+                `;
+                contentArea.appendChild(style);
+
+                const jenkinsCrumbElement = document.querySelector('input[name="Jenkins-Crumb"]');
+                const jenkinsCrumb = jenkinsCrumbElement ? jenkinsCrumbElement.value : '';
+
+                contentArea.querySelectorAll('form').forEach(form => {
+                    form.action = restartURL + "restart";
+
+                    let crumbInput = document.createElement('input');
+                    crumbInput.type = 'hidden';
+                    crumbInput.name = 'Jenkins-Crumb';
+                    crumbInput.value = jenkinsCrumb;
+                    form.appendChild(crumbInput);
+
+                    let jsonInput = document.createElement('input');
+                    jsonInput.type = 'hidden';
+                    jsonInput.id = 'json';
+                    jsonInput.name = 'json';
+                    form.appendChild(jsonInput);
+                })
+
+                // Auto-select the last option in dropdowns
+                setTimeout(() => {
+                    const dropdowns = contentArea.querySelectorAll('.jenkins-select__input');
+                    dropdowns.forEach(dropdown => {
+                        if (dropdown.options.length > 0) {
+                            dropdown.addEventListener('change', function() {
+                                contentArea.querySelector('#json').value = `{"stageName":"${dropdown.value}","Submit":"","Jenkins-Crumb":"${jenkinsCrumb}"}`;
+                            })
+
+                            // Select the last option
+                            dropdown.selectedIndex = dropdown.options.length - 1;
+
+                            // Trigger change event in case there are event listeners
+                            const event = new Event('change', { bubbles: true });
+                            dropdown.dispatchEvent(event);
+                        }
+                    });
+                }, 100);
+
+            } else {
+                contentArea.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #666;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">❌</div>
+                        <div>Unable to load restart page content</div>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading restart page:', error);
+            contentArea.innerHTML = `
+                <div style="text-align: center; padding: 40px; color: #666;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">⚠️</div>
+                    <div>Error loading restart page</div>
+                    <div style="font-size: 12px; margin-top: 10px;">${error.message}</div>
+                </div>
+            `;
+        });
+
+    // Close functionality
+    document.getElementById('close-restart-popup').addEventListener('click', function() {
+        document.body.removeChild(popupOverlay);
+    });
+
+    popupOverlay.addEventListener('click', function(e) {
+        if (e.target === popupOverlay) {
+            document.body.removeChild(popupOverlay);
+        }
+    });
+
+    // Escape key to close
+    const handleEscape = function(e) {
+        if (e.key === 'Escape') {
+            document.body.removeChild(popupOverlay);
+            document.removeEventListener('keydown', handleEscape);
+        }
+    };
+    document.addEventListener('keydown', handleEscape);
+}
+
 // Initialize when page is loaded
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
         handlePipelineRedirect();
         // Add a small delay to ensure all shadow DOM elements are loaded
         setTimeout(transformJenkinsLink, 500);
+        setTimeout(addRestartPopup, 1000);
     });
 } else {
     handlePipelineRedirect();
     // Add a small delay to ensure all shadow DOM elements are loaded
     setTimeout(transformJenkinsLink, 500);
+    setTimeout(addRestartPopup, 1000);
 }
