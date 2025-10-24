@@ -55,7 +55,7 @@ function handlePipelineRedirect() {
                         const match = currentUrl.match(urlPattern);
                         if (match) {
                             const [_, domain, project, branch] = match;
-                            window.location.href = `https://${domain}/view/DEV/job/${project}/job/${branch}/lastBuild/cloudbees-pipeline-explorer/`;
+                            window.location.href = `https://${domain}/job/${project}/job/${branch}/lastBuild/cloudbees-pipeline-explorer/`;
                         }
                     }
                 }, 500);
